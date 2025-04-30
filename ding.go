@@ -22,59 +22,82 @@ const (
 	configFileName = ".env"
 )
 
-// loadConfigFile loads configuration from .env file in the current directory
-func loadConfigFile() (map[string]string, string) {
+// loadConfigFile loads configuration from .env files in multiple locations
+func loadConfigFile() map[string]string {
 	config := make(map[string]string)
-	configDir := ""
 
-	// Only check the current directory for the config file
-	configPath := filepath.Join(".", configFileName)
+	// Check multiple locations in order of priority
+	// 1. Current directory
+	// 2. Binary directory
+	// 3. Home directory
 
-	file, err := os.Open(configPath)
-	if err != nil {
-		return config, configDir // Return empty config if file doesn't exist or can't be opened
+	configPaths := []string{
+		filepath.Join(".", configFileName),
 	}
-	defer file.Close()
 
-	// Store the directory where the config file was found
-	absPath, err := filepath.Abs(filepath.Dir(configPath))
+	// Add executable directory if we can determine it
+	execPath, err := os.Executable()
 	if err == nil {
-		configDir = absPath
+		execDir := filepath.Dir(execPath)
+		configPaths = append(configPaths, filepath.Join(execDir, configFileName))
 	}
 
-	// Read file line by line
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		line = strings.TrimSpace(line)
-
-		// Skip comments and empty lines
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-
-		// Parse key=value pairs
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-
-			// Remove quotes if present
-			value = strings.Trim(value, "\"'")
-
-			config[key] = value
-		}
+	// Add home directory if we can determine it
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		configPaths = append(configPaths, filepath.Join(homeDir, configFileName))
 	}
 
-	return config, configDir
+	// Try each location in priority order
+	for _, configPath := range configPaths {
+		file, err := os.Open(configPath)
+		if err != nil {
+			continue // Try next location if file doesn't exist
+		}
+		defer file.Close()
+
+		// Read file line by line
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			line = strings.TrimSpace(line)
+
+			// Skip comments and empty lines
+			if strings.HasPrefix(line, "#") || line == "" {
+				continue
+			}
+
+			// Parse key=value pairs
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+
+				// Remove quotes if present
+				value = strings.Trim(value, "\"'")
+
+				// Convert to absolute path if it's a file path and not already absolute
+				if key == "SOUND_FILE" && !filepath.IsAbs(value) {
+					// Make path absolute relative to the config file's location
+					configDir := filepath.Dir(configPath)
+					value = filepath.Join(configDir, value)
+				}
+
+				config[key] = value
+			}
+		}
+
+		// If we found and successfully read a config file, return the config
+		return config
+	}
+
+	// No config found in any location
+	return config
 }
 
 func getSoundFilePath() string {
-	config, configDir := loadConfigFile()
+	config := loadConfigFile()
 	if soundFile, exists := config["SOUND_FILE"]; exists && soundFile != "" {
-		if !filepath.IsAbs(soundFile) && configDir != "" {
-			return filepath.Join(configDir, soundFile)
-		}
 		return soundFile
 	}
 
@@ -182,7 +205,7 @@ func main() {
 		// Use the sound file specified via command line
 		soundFilePath = *customSoundFile
 	} else if !*useTerminalBell {
-		// Use the default sound file
+		// Use the sound file from config
 		soundFilePath = getSoundFilePath()
 	}
 
