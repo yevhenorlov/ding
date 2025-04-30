@@ -10,7 +10,6 @@ A simple CLI tool written in Go that notifies you when your long-running process
 - Cross-platform support (Linux, macOS, Windows)
 - Silent mode (no text output)
 - Flexible configuration via command-line flags or config file
-- Portable default sound path using user's home directory
 
 ## Installation
 
@@ -54,7 +53,7 @@ The config file uses a simple key=value format:
 
 ```
 # Configuration for ding
-SOUND_FILE=./audio/ding.mp3
+SOUND_FILE=./ding.mp3
 ```
 
 ## Usage
@@ -101,7 +100,7 @@ Basic usage:
 
 ## How it works
 
-- By default: Uses the sound file located at `~/code/ding/audio/ding.mp3`
+- By default: Checks for sound file path in `.env` file
 - With `-f` flag: Uses the custom sound file specified in the command line
 - With `-b` flag: Uses the terminal bell character `\a` instead
 - Sound player is automatically selected based on your OS:
@@ -118,7 +117,7 @@ Create a file named `.env` in your project directory:
 
 ```
 # Ding configuration
-SOUND_FILE=./audio/notification.mp3
+SOUND_FILE=./assets/notification.mp3
 ```
 
 ### Sample Config File
