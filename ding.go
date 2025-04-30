@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -16,18 +18,67 @@ const (
 	bellChar = "\a"
 	// Default message
 	defaultMessage = "Process completed"
+	// Config file name
+	configFileName = ".env"
 )
 
-// getSoundFilePath returns the path to the default sound file
-func getSoundFilePath() string {
-	homeDir, err := os.UserHomeDir()
+// loadConfigFile loads configuration from .env file in the current directory
+func loadConfigFile() (map[string]string, string) {
+	config := make(map[string]string)
+	configDir := ""
+
+	// Only check the current directory for the config file
+	configPath := filepath.Join(".", configFileName)
+
+	file, err := os.Open(configPath)
 	if err != nil {
-		return ""
+		return config, configDir // Return empty config if file doesn't exist or can't be opened
+	}
+	defer file.Close()
+
+	// Store the directory where the config file was found
+	absPath, err := filepath.Abs(filepath.Dir(configPath))
+	if err == nil {
+		configDir = absPath
 	}
 
-	// Define relative path to sound file within user's directory structure
-	// You can customize this path as needed
-	return filepath.Join(homeDir, "code", "ding", "ding.mp3")
+	// Read file line by line
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		line = strings.TrimSpace(line)
+
+		// Skip comments and empty lines
+		if strings.HasPrefix(line, "#") || line == "" {
+			continue
+		}
+
+		// Parse key=value pairs
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+
+			// Remove quotes if present
+			value = strings.Trim(value, "\"'")
+
+			config[key] = value
+		}
+	}
+
+	return config, configDir
+}
+
+func getSoundFilePath() string {
+	config, configDir := loadConfigFile()
+	if soundFile, exists := config["SOUND_FILE"]; exists && soundFile != "" {
+		if !filepath.IsAbs(soundFile) && configDir != "" {
+			return filepath.Join(configDir, soundFile)
+		}
+		return soundFile
+	}
+
+	return ""
 }
 
 func playBellSound(repeat int, interval time.Duration) {

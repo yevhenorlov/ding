@@ -9,6 +9,8 @@ A simple CLI tool written in Go that notifies you when your long-running process
 - Repeat sounds with configurable intervals
 - Cross-platform support (Linux, macOS, Windows)
 - Silent mode (no text output)
+- Flexible configuration via command-line flags or config file
+- Portable default sound path using user's home directory
 
 ## Installation
 
@@ -35,15 +37,25 @@ cd ding
 go build -o ding
 ```
 
-### Default Sound File Location
+### Configuration
 
-By default, the application looks for a sound file at:
+Ding can be configured in two ways (in order of precedence):
+
+1. **Command-line flags** (highest priority)
+2. **Local config file** (used if no flag is specified)
+
+If neither option is provided, the terminal bell will be used as a fallback.
+
+#### Config File
+
+Ding looks for a configuration file called `.env` in the current directory where you run the command.
+
+The config file uses a simple key=value format:
 
 ```
-~/code/ding/audio/ding.mp3
+# Configuration for ding
+SOUND_FILE=./audio/ding.mp3
 ```
-
-You can customize this default path by modifying the `getSoundFilePath()` function in `ding.go`. Alternatively, you can specify a different sound file with the `-f` flag when running the command.
 
 ## Usage
 
@@ -98,21 +110,26 @@ Basic usage:
   - Windows: PowerShell Media.SoundPlayer
 - If the sound file can't be found or played, falls back to terminal bell
 
-## Customizing the Default Path
+## Configuration Examples
 
-If you want to modify the default sound file path for all users, you can edit the `getSoundFilePath()` function:
+### Creating a Config File
 
-```go
-func getSoundFilePath() string {
-    homeDir, err := os.UserHomeDir()
-    if err != nil {
-        return ""
-    }
+Create a file named `.env` in your project directory:
 
-    // Modify this line to change the default location
-    return filepath.Join(homeDir, "code", "ding", "ding.mp3")
-}
 ```
+# Ding configuration
+SOUND_FILE=./audio/notification.mp3
+```
+
+### Sample Config File
+
+```
+# .env - Project-specific settings
+# Relative paths are resolved relative to the .env file location
+SOUND_FILE=./sounds/build-complete.mp3
+```
+
+**Note:** If you specify a relative path (starting with `./` or without a leading `/`), it will be resolved relative to the location of the `.env` file, not where you run the command from. This makes it easier to keep your audio files with your project.
 
 ## License
 
