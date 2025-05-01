@@ -6,7 +6,6 @@ A simple CLI tool written in Go that notifies you when your long-running process
 
 - Play custom MP3 sound (or terminal bell as fallback)
 - Customizable notification message
-- Repeat sounds with configurable intervals
 - Cross-platform support (Linux, macOS, Windows)
 - Silent mode (no text output)
 
@@ -56,23 +55,18 @@ Basic usage:
 
 ### Command-line options
 
-| Option | Type     | Description                               | Default Value          |
-| ------ | -------- | ----------------------------------------- | ---------------------- |
-| `-m`   | string   | Message to display                        | "Process completed"    |
-| `-r`   | int      | Number of times to repeat the sound       | 1                      |
-| `-f`   | string   | Path to custom sound file                 | "~/code/ding/ding.mp3" |
-| `-i`   | duration | Interval between sounds                   | 500ms                  |
-| `-s`   | -        | Silent mode (no text output)              | -                      |
-| `-b`   | -        | Use terminal bell instead of custom sound | -                      |
+| Option | Type   | Description                               | Default Value          |
+| ------ | ------ | ----------------------------------------- | ---------------------- |
+| `-m`   | string | Message to display                        | "Process completed"    |
+| `-f`   | string | Path to custom sound file                 | "~/code/ding/ding.mp3" |
+| `-s`   |        | Silent mode (no text output)              |                        |
+| `-b`   |        | Use terminal bell instead of custom sound |                        |
 
 ### Examples
 
 ```bash
 # Custom message
 ./time-consuming-task; ./ding -m "Backup completed!"
-
-# Play sound 3 times with 1 second interval
-./build-project; ./ding -r 3 -i 1s
 
 # Use terminal bell instead of custom sound
 ./long-calculation; ./ding -b
@@ -84,7 +78,7 @@ Basic usage:
 ./data-import; ./ding -f /path/to/success.mp3
 
 # Combine options
-./database-backup; ./ding -m "Backup finished!" -r 2 -i 750ms -f ~/sounds/tada.mp3
+./database-backup; ./ding -m "Backup finished!" -f ~/sounds/tada.mp3
 ```
 
 ## How it works
