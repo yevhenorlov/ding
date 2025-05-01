@@ -1,0 +1,13 @@
+name: Test Workflow
+
+on:
+  push:
+    branches:
+      - '**'  # This will match any branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo message
+        run: echo "This is a test workflow"
