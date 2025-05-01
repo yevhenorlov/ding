@@ -16,7 +16,7 @@ A simple CLI tool written in Go that notifies you when your long-running process
 
 To build from source:
 
-- Go 1.16 or higher
+- Go 1.24 or higher
 
 For MP3 sound support:
 
@@ -56,14 +56,14 @@ Basic usage:
 
 ### Command-line options
 
-```
--m string    Message to display (default "Process completed")
--r int       Number of times to repeat the sound (default 1)
--i duration  Interval between sounds (default 500ms)
--s           Silent mode (no text output)
--b           Use terminal bell instead of custom sound
--f string    Path to custom sound file (overrides default)
-```
+| Option | Type     | Description                               | Default Value          |
+| ------ | -------- | ----------------------------------------- | ---------------------- |
+| `-m`   | string   | Message to display                        | "Process completed"    |
+| `-r`   | int      | Number of times to repeat the sound       | 1                      |
+| `-f`   | string   | Path to custom sound file                 | "~/code/ding/ding.mp3" |
+| `-i`   | duration | Interval between sounds                   | 500ms                  |
+| `-s`   | -        | Silent mode (no text output)              | -                      |
+| `-b`   | -        | Use terminal bell instead of custom sound | -                      |
 
 ### Examples
 
