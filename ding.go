@@ -17,6 +17,14 @@ const (
 	defaultMessage = "Process completed"
 )
 
+// Variables that allow for dependency injection in tests
+var (
+	execCommand = exec.Command
+	osStat      = os.Stat
+	fmtPrint    = fmt.Fprint
+	fmtPrintln  = fmt.Println
+)
+
 // getSoundFilePath returns the path to the default sound file
 func getSoundFilePath() string {
 	homeDir, err := os.UserHomeDir()
@@ -31,7 +39,7 @@ func getSoundFilePath() string {
 
 func playBellSound() {
 	// Print the bell character to trigger the terminal bell
-	fmt.Fprint(os.Stdout, bellChar)
+	fmtPrint(os.Stdout, bellChar)
 }
 
 func playWithExternalPlayer(filePath string) error {
@@ -41,7 +49,7 @@ func playWithExternalPlayer(filePath string) error {
 	switch runtime.GOOS {
 	case "darwin":
 		playerName = "afplay"
-		cmd = exec.Command(playerName, filePath)
+		cmd = execCommand(playerName, filePath)
 		return cmd.Run()
 	case "linux":
 		// Try several players in order of preference
@@ -70,10 +78,10 @@ func playWithExternalPlayer(filePath string) error {
 			args = []string{"-nodisp", "-autoexit", "-loglevel", "quiet", filePath}
 		}
 
-		cmd = exec.Command(playerName, args...)
+		cmd = execCommand(playerName, args...)
 		return cmd.Run()
 	case "windows":
-		cmd = exec.Command("powershell", "-c", "(New-Object Media.SoundPlayer '"+filePath+"').PlaySync();")
+		cmd = execCommand("powershell", "-c", "(New-Object Media.SoundPlayer '"+filePath+"').PlaySync();")
 		return cmd.Run()
 	default:
 		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
@@ -108,7 +116,7 @@ func main() {
 			playBellSound()
 		} else {
 			// Check if the file exists
-			if _, err := os.Stat(absPath); os.IsNotExist(err) {
+			if _, err := osStat(absPath); os.IsNotExist(err) {
 				log.Printf("Sound file not found: %s. Falling back to terminal bell.", absPath)
 				playBellSound()
 			} else {
@@ -126,6 +134,6 @@ func main() {
 
 	// Print the message unless silent mode is enabled
 	if !*noMessage {
-		fmt.Println(*message)
+		fmtPrintln(*message)
 	}
 }
