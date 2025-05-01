@@ -11,102 +11,74 @@ A simple CLI tool written in Go that notifies you when your long-running process
 
 ## Installation
 
-### Prerequisites
-
-To build from source:
-
-- Go 1.24 or higher
-
-For MP3 sound support:
-
-- **Linux**: mpg123, mpg321, mplayer, or ffplay
-- **macOS**: Already includes afplay
-- **Windows**: No additional requirements (uses PowerShell)
-
-### Building
-
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ding.git
+git clone https://github.com/yevhenorlov/ding.git
 cd ding
 
 # Build the application
 go build -o ding
 ```
 
-### Default Sound File Location
+### Prerequisites
 
-By default, the application looks for a sound file at:
-
-```
-~/code/ding/ding.mp3
-```
-
-You can customize this default path by modifying the `getSoundFilePath()` function in `ding.go`. Alternatively, you can specify a different sound file with the `-f` flag when running the command.
+- **Build**: Go 1.24+
+- **Sound support**:
+  - **Linux**: mpg123, mpg321, mplayer, or ffplay
+  - **macOS**: No additional requirements (uses built-in afplay)
+  - **Windows**: No additional requirements (uses PowerShell)
 
 ## Usage
 
 Basic usage:
 
 ```bash
-# Notify when a long-running command completes (with default sound)
+# Notify when a command completes
 ./long-running-process; ./ding
 ```
 
 ### Command-line options
 
-| Option | Type   | Description                               | Default Value          |
-| ------ | ------ | ----------------------------------------- | ---------------------- |
-| `-m`   | string | Message to display                        | "Process completed"    |
-| `-f`   | string | Path to custom sound file                 | "~/code/ding/ding.mp3" |
-| `-s`   |        | Silent mode (no text output)              |                        |
-| `-b`   |        | Use terminal bell instead of custom sound |                        |
+| Option | Description                               | Default Value          |
+| ------ | ----------------------------------------- | ---------------------- |
+| `-m`   | Message to display                        | "Process completed"    |
+| `-f`   | Path to custom sound file                 | "~/code/ding/ding.mp3" |
+| `-s`   | Silent mode (no text output)              |                        |
+| `-b`   | Use terminal bell instead of custom sound |                        |
 
 ### Examples
 
 ```bash
 # Custom message
-./time-consuming-task; ./ding -m "Backup completed!"
+./task; ./ding -m "Backup completed!"
 
-# Use terminal bell instead of custom sound
-./long-calculation; ./ding -b
+# Use terminal bell
+./calculation; ./ding -b
 
 # Just sound, no message
-./lengthy-process; ./ding -s
+./process; ./ding -s
 
-# Use a specific sound file for this notification
-./data-import; ./ding -f /path/to/success.mp3
-
-# Combine options
-./database-backup; ./ding -m "Backup finished!" -f ~/sounds/tada.mp3
+# Custom sound file
+./import; ./ding -f /path/to/success.mp3
 ```
+
+## Sound File Configuration
+
+By default, Ding looks for a sound file at `~/code/ding/ding.mp3`. You can:
+
+1. Place your sound file at this default location
+2. Specify a different file with the `-f` flag
+3. Modify the default path in the source code (`getSoundFilePath()` function in `ding.go`)
+
+If Ding can't find or play the sound file, it automatically falls back to the terminal bell.
 
 ## How it works
 
-- By default: Uses the sound file located at `~/code/ding/ding.mp3`
-- With `-f` flag: Uses the custom sound file specified in the command line
-- With `-b` flag: Uses the terminal bell character `\a` instead
-- Sound player is automatically selected based on your OS:
-  - Linux: mpg123, mpg321, mplayer, or ffplay (whichever is available)
-  - macOS: afplay (built-in)
-  - Windows: PowerShell Media.SoundPlayer
-- If the sound file can't be found or played, falls back to terminal bell
+Ding automatically selects the appropriate audio player based on your operating system:
 
-## Customizing the Default Path
-
-If you want to modify the default sound file path for all users, you can edit the `getSoundFilePath()` function:
-
-```go
-func getSoundFilePath() string {
-    homeDir, err := os.UserHomeDir()
-    if err != nil {
-        return ""
-    }
-
-    // Modify this line to change the default location
-    return filepath.Join(homeDir, "code", "ding", "ding.mp3")
-}
-```
+- **Linux**: Uses mpg123, mpg321, mplayer, or ffplay (whichever is available)
+- **macOS**: Uses afplay (built-in)
+- **Windows**: Uses PowerShell Media.SoundPlayer
 
 ## License
 
